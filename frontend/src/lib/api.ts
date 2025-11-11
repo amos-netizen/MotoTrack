@@ -3,29 +3,102 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken()
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    ...options,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${text}`);
+  try {
+    // Create abort controller for timeout if not provided
+    let signal = options?.signal
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    if (!signal) {
+      const controller = new AbortController()
+      timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      signal = controller.signal
+    }
+    
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      ...options,
+      signal,
+    });
+    
+    if (timeoutId) clearTimeout(timeoutId)
+    
+    if (!res.ok) {
+      let errorMessage = `${res.status} ${res.statusText}`
+      try {
+        const errorData = await res.json()
+        errorMessage = errorData.detail || errorData.message || errorMessage
+      } catch {
+        const text = await res.text()
+        if (text) errorMessage = text
+      }
+      throw new Error(errorMessage)
+    }
+    
+    return res.json();
+  } catch (error: any) {
+    // Handle network errors
+    if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+      throw new Error('Request timed out. Please check your connection.')
+    }
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('Cannot connect to server. Please ensure the backend is running on http://localhost:8000')
+    }
+    throw error
   }
-  return res.json();
 }
 
 export const api = {
   health: () => request<{ status: string }>(`/healthz`),
   // Auth
   signup: (payload: { email: string; password: string; role?: string; garage_id?: number|null }) => request(`/auth/signup`, { method: 'POST', body: JSON.stringify(payload) }),
+  createStaffProfile: (payload: { email: string; password: string; role: string; garage_id: number; full_name?: string; phone?: string }) => request(`/auth/create-staff-profile`, { method: 'POST', body: JSON.stringify(payload) }),
   login: async (email: string, password: string) => {
-    const body = new URLSearchParams({ username: email, password, grant_type: 'password' })
-    const res = await fetch(`${API_BASE}/auth/token`, { method: 'POST', body, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
-    if (!res.ok) {
-      const errorText = await res.text()
-      throw new Error(errorText || 'Login failed')
+    try {
+      const body = new URLSearchParams({ username: email, password, grant_type: 'password' })
+      // Create abort controller for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      
+      const res = await fetch(`${API_BASE}/auth/token`, { 
+        method: 'POST', 
+        body, 
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      
+      if (!res.ok) {
+        let errorMessage = 'Login failed'
+        try {
+          const errorData = await res.json()
+          errorMessage = errorData.detail || errorData.message || errorMessage
+        } catch {
+          const errorText = await res.text()
+          errorMessage = errorText || errorMessage
+        }
+        
+        if (res.status === 401 || res.status === 400) {
+          throw new Error('Incorrect email or password')
+        }
+        throw new Error(errorMessage)
+      }
+      
+      const data = await res.json()
+      if (!data.access_token) {
+        throw new Error('Invalid response from server')
+      }
+      return data as { access_token: string, token_type: string }
+    } catch (error: any) {
+      // Handle network errors
+      if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+        throw new Error('Request timed out. Please check your connection and try again.')
+      }
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        throw new Error('Cannot connect to server. Please ensure the backend is running on http://localhost:8000')
+      }
+      // Re-throw other errors
+      throw error
     }
-    return res.json() as Promise<{ access_token: string, token_type: string }>
   },
   me: () => request(`/auth/me`),
   // Orders

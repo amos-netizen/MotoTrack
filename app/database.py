@@ -22,3 +22,14 @@ def init_db() -> None:
     from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    
+    # Create default "Main" garage if it doesn't exist
+    db = SessionLocal()
+    try:
+        main_garage = db.query(models.Garage).filter(models.Garage.name == "Main").first()
+        if not main_garage:
+            main_garage = models.Garage(name="Main", address="Main Location")
+            db.add(main_garage)
+            db.commit()
+    finally:
+        db.close()

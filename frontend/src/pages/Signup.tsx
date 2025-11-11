@@ -1,120 +1,173 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { api } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<string>('client')
-  const [garages, setGarages] = useState<any[]>([])
-  const [garageId, setGarageId] = useState<number | ''>('')
-  const [error, setError] = useState('')
-  const [ok, setOk] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    api.listGarages().then((data: any) => setGarages(data || [])).catch(() => setGarages([]))
-  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(''); setOk('')
+    setLoading(true)
     try {
-      await api.signup({ email, password, role, garage_id: (role !== 'client' && role !== 'admin') ? Number(garageId) : null })
-      setOk('Account created. You can log in now.')
-      setTimeout(() => navigate('/login'), 800)
+      await api.signup({ email, password, role: 'client', garage_id: null })
+      toast.success('Account created successfully!')
+      setTimeout(() => navigate('/login'), 1000)
     } catch (e: any) {
-      setError(e.message || 'Signup failed')
+      toast.error(e.message || 'Signup failed')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2" style={{
-            textShadow: '0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3)'
-          }}>
-            Moto<span style={{ color: '#3b82f6' }}>Track</span>
-          </h1>
-          <p className="text-gray-400">Premium Automotive Service</p>
+    <div className="min-h-screen flex">
+      {/* Left Side - Luxury Car Image */}
+      <motion.div 
+        className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#0B0C10] via-[#1F2833] to-[#0B0C10]"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 30% 50%, rgba(102, 252, 241, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(197, 198, 199, 0.1) 0%, transparent 50%)
+            `
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-center z-10"
+          >
+            <h1 className="text-6xl font-bold mb-4 text-glow" style={{ 
+              fontFamily: 'Poppins, sans-serif',
+              background: 'linear-gradient(135deg, #66FCF1, #00D4FF)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Join Us
+            </h1>
+            <p className="text-xl text-[#C5C6C7] mb-8" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              Experience premium automotive service
+            </p>
+            <div className="text-9xl">🚗</div>
+          </motion.div>
         </div>
-        <div className="card-metallic">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p className="text-gray-400">Join MotoTrack today</p>
+        <div className="absolute bottom-8 left-8 text-[#C5C6C7] opacity-20 text-sm" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          MotoTrack
+        </div>
+      </motion.div>
+
+      {/* Right Side - Signup Form */}
+      <motion.div 
+        className="w-full lg:w-1/2 flex items-center justify-center p-8"
+        initial={{ x: 100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2 text-glow" style={{ 
+              fontFamily: 'Poppins, sans-serif',
+              background: 'linear-gradient(135deg, #66FCF1, #00D4FF)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Moto<span style={{ color: '#FFD700' }}>Track</span>
+            </h1>
+            <p className="text-[#C5C6C7]">Premium Automotive Service</p>
           </div>
-          <form className="flex flex-col gap-4" onSubmit={submit}>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Email</label>
-              <input 
-                className="input-modern w-full" 
-                placeholder="example@email.com" 
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-                type="email"
-                required
-              />
+
+          {/* Glassmorphic Form Card */}
+          <motion.div 
+            className="card-glass p-8"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold mb-2" style={{ 
+                color: '#C5C6C7',
+                fontFamily: 'Poppins, sans-serif'
+              }}>
+                Create Account
+              </h1>
+              <p className="text-[#C5C6C7] opacity-70" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                Join MotoTrack today
+              </p>
             </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Password</label>
-              <input 
-                className="input-modern w-full" 
-                type="password" 
-                placeholder="••••••••" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Account Type</label>
-              <select 
-                className="input-modern w-full" 
-                value={role} 
-                onChange={e => setRole(e.target.value)}
-              >
-                <option value="client">Client</option>
-                <option value="site_manager">Site Manager</option>
-                <option value="technician">Technician</option>
-                <option value="workshop_manager">Workshop Manager</option>
-                <option value="warehouse_manager">Warehouse Manager</option>
-                <option value="billing">Billing</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            {(role === 'site_manager' || role === 'technician' || role === 'workshop_manager' || role === 'warehouse_manager' || role === 'billing') && (
+
+            <form className="flex flex-col gap-5" onSubmit={submit}>
               <div>
-                <label className="block text-sm text-gray-400 mb-2 font-medium">Garage</label>
-                <select 
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Email
+                </label>
+                <input 
                   className="input-modern w-full" 
-                  value={garageId} 
-                  onChange={e => setGarageId(e.target.value ? Number(e.target.value) : '')}
+                  placeholder="example@email.com" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
+                  type="email"
                   required
-                >
-                  <option value="">Select garage</option>
-                  {garages.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
+                />
               </div>
-            )}
-            {error && <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2">{error}</div>}
-            {ok && <div className="text-green-400 text-sm bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-2">{ok}</div>}
-            <button className="btn-primary w-full" type="submit">Sign up</button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-gray-400">Already have an account? <Link to="/login" className="text-blue-400 hover:text-blue-300 font-semibold">Login</Link></p>
-          </div>
+              <div>
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Password
+                </label>
+                <input 
+                  className="input-modern w-full" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  required
+                />
+              </div>
+              <div className="text-center py-2">
+                <p className="text-xs text-[#C5C6C7] opacity-70" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  Creating a <span className="text-[#66FCF1] font-semibold">Client</span> account
+                </p>
+                <p className="text-xs text-[#C5C6C7] opacity-50 mt-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                  Staff profiles can only be created by administrators
+                </p>
+              </div>
+              <button 
+                className="btn-primary w-full text-lg py-4 mt-2" 
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? 'Creating account...' : 'Sign up'}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-[#C5C6C7] opacity-70" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                Already have an account?{' '}
+                <Link 
+                  to="/login" 
+                  className="text-[#66FCF1] hover:text-[#00D4FF] font-semibold transition-colors"
+                  style={{ fontFamily: 'Poppins, sans-serif' }}
+                >
+                  Login
+                </Link>
+              </p>
+            </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
-
-
-
-
-
-
-
-

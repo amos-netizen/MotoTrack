@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { initTheme } from './lib/theme'
+import Toaster from './components/Toaster'
 import './index.css'
 import App from './pages/App'
 import Orders from './pages/Orders'
@@ -15,6 +16,7 @@ import WorkshopManager from './pages/WorkshopManager'
 import WarehouseManager from './pages/WarehouseManager'
 import Billing from './pages/Billing'
 import TaskActions from './pages/TaskActions'
+import UserManagement from './pages/UserManagement'
 
 const router = createBrowserRouter([
   { path: '/', element: <App /> },
@@ -29,11 +31,13 @@ const router = createBrowserRouter([
   { path: '/warehouse-manager', element: <WarehouseManager /> },
   { path: '/billing', element: <Billing /> },
   { path: '/task-actions', element: <TaskActions /> },
+  { path: '/user-management', element: <UserManagement /> },
 ])
 
 initTheme()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <Toaster />
     <RouterProvider router={router} />
   </StrictMode>,
 )
