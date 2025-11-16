@@ -55,7 +55,7 @@ export default function Technician() {
   const loadWarehouseItems = async () => {
     try {
       const items = await api.listWarehouseItems(true)
-      setWarehouseItems(items)
+      setWarehouseItems(items as any)
     } catch (err: any) {
       setMsg(err.message)
     }
