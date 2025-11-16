@@ -13,8 +13,10 @@ router = APIRouter()
 class SignupPayload(BaseModel):
     email: str
     password: str
-    role: str = "client"  # client, staff, admin
+    role: str  # technician, site_manager, workshop_manager, warehouse_manager, billing
     garage_id: int | None = None
+    full_name: str | None = None
+    phone: str | None = None
 
 
 class CreateStaffProfilePayload(BaseModel):
@@ -28,24 +30,48 @@ class CreateStaffProfilePayload(BaseModel):
 
 @router.post("/signup")
 def signup(payload: SignupPayload, db: Session = Depends(get_db)):
-    """Public signup - only allows client role"""
-    # Only allow client role for public signup
-    if payload.role != "client":
-        raise HTTPException(status_code=403, detail="Only client accounts can be created through public signup. Staff profiles must be created by an admin.")
+    """Public signup - allows staff roles only"""
+    # Validate allowed staff roles
+    allowed_staff_roles = ("technician", "site_manager", "workshop_manager", "warehouse_manager", "billing")
+    if payload.role not in allowed_staff_roles:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid role. Allowed roles: {', '.join(allowed_staff_roles)}"
+        )
     
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Get or create Main garage if garage_id not provided
+    garage_id = payload.garage_id
+    if not garage_id:
+        main_garage = db.query(Garage).filter(Garage.name == "Main").first()
+        if main_garage:
+            garage_id = main_garage.id
+        else:
+            # Create Main garage if it doesn't exist
+            main_garage = Garage(name="Main", address="Main Location")
+            db.add(main_garage)
+            db.flush()
+            garage_id = main_garage.id
+    
+    # Validate garage exists
+    garage = db.query(Garage).filter(Garage.id == garage_id).first()
+    if not garage:
+        raise HTTPException(status_code=400, detail="Invalid garage ID")
     
     user = User(
         email=payload.email,
         hashed_password=get_password_hash(payload.password),
         role=payload.role,
-        garage_id=None,  # Clients don't need a garage
+        garage_id=garage_id,
+        full_name=payload.full_name,
+        phone=payload.phone,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return {"id": user.id, "email": user.email, "role": user.role, "garage_id": user.garage_id}
+    return {"id": user.id, "email": user.email, "role": user.role, "garage_id": user.garage_id, "full_name": user.full_name, "phone": user.phone}
 
 
 @router.post("/create-staff-profile")
@@ -60,7 +86,7 @@ def create_staff_profile(
         raise HTTPException(status_code=403, detail="Only Operation Manager/Admin can create staff profiles")
     
     # Validate allowed roles
-    allowed_staff_roles = ("technician", "workshop_manager", "warehouse_manager", "billing", "admin")
+    allowed_staff_roles = ("technician", "site_manager", "workshop_manager", "warehouse_manager", "billing", "admin")
     if payload.role not in allowed_staff_roles:
         raise HTTPException(
             status_code=400, 

@@ -333,14 +333,14 @@ export default function App() {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-6xl font-bold mb-6 leading-tight text-glow" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                Premium Automotive Service
+                MotoTrack Operations
               </h2>
               <p className="text-xl mb-10 leading-relaxed" style={{ color: '#C5C6C7', fontFamily: 'Montserrat, sans-serif' }}>
-                Experience luxury car care with cutting-edge diagnostics, expert repairs, and premium detailing. Trusted by enthusiasts worldwide.
+                Manage automotive operations with precision. Workshop, warehouse, administration, and billing all in one platform.
               </p>
               <div className="flex gap-4">
-                <Link to="/signup" className="btn-primary text-lg px-8 py-4">Book Service</Link>
-                <Link to="/login" className="btn-secondary text-lg px-8 py-4">Login</Link>
+                <Link to="/login" className="btn-primary text-lg px-8 py-4">Login</Link>
+                <Link to="/signup" className="btn-secondary text-lg px-8 py-4">Sign Up</Link>
               </div>
             </motion.div>
             <motion.div 

@@ -49,7 +49,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   health: () => request<{ status: string }>(`/healthz`),
   // Auth
-  signup: (payload: { email: string; password: string; role?: string; garage_id?: number|null }) => request(`/auth/signup`, { method: 'POST', body: JSON.stringify(payload) }),
+  signup: (payload: { email: string; password: string; role: string; garage_id?: number|null; full_name?: string; phone?: string }) => request(`/auth/signup`, { method: 'POST', body: JSON.stringify(payload) }),
   createStaffProfile: (payload: { email: string; password: string; role: string; garage_id: number; full_name?: string; phone?: string }) => request(`/auth/create-staff-profile`, { method: 'POST', body: JSON.stringify(payload) }),
   login: async (email: string, password: string) => {
     try {

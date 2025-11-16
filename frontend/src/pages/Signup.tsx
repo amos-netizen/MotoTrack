@@ -1,32 +1,114 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../lib/api'
-import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 export default function Signup() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [garages, setGarages] = useState<any[]>([])
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'technician',
+    garage_id: '',
+    full_name: '',
+    phone: ''
+  })
 
-  const submit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    loadGarages()
+  }, [])
+
+  // Auto-select "Main" garage when garages are loaded
+  useEffect(() => {
+    if (garages.length > 0) {
+      const mainGarage = garages.find((g: any) => g.name === 'Main')
+      if (mainGarage && !formData.garage_id) {
+        setFormData(prev => ({
+          ...prev,
+          garage_id: String(mainGarage.id)
+        }))
+      }
+    }
+  }, [garages])
+
+  const loadGarages = async () => {
+    try {
+      const garagesData = await api.listGarages()
+      const sortedGarages = (garagesData as any[]).sort((a, b) => {
+        if (a.name === 'Main') return -1
+        if (b.name === 'Main') return 1
+        return a.name.localeCompare(b.name)
+      })
+      setGarages(sortedGarages)
+      
+      // Auto-select Main garage
+      const mainGarage = sortedGarages.find((g: any) => g.name === 'Main')
+      if (mainGarage) {
+        setFormData(prev => ({
+          ...prev,
+          garage_id: String(mainGarage.id)
+        }))
+      }
+    } catch (err: any) {
+      console.error('Failed to load garages:', err)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    // Validation
+    if (!formData.email || !formData.password) {
+      toast.error('Email and password are required')
+      setLoading(false)
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match')
+      setLoading(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.garage_id) {
+      toast.error('Please select a garage')
+      setLoading(false)
+      return
+    }
+
     try {
-      await api.signup({ email, password, role: 'client', garage_id: null })
-      toast.success('Account created successfully!')
-      setTimeout(() => navigate('/login'), 1000)
-    } catch (e: any) {
-      toast.error(e.message || 'Signup failed')
+      await api.signup({
+        email: formData.email.trim(),
+        password: formData.password,
+        role: formData.role,
+        garage_id: Number(formData.garage_id),
+        full_name: formData.full_name.trim() || undefined,
+        phone: formData.phone.trim() || undefined
+      })
+
+      toast.success('Staff account created successfully! Please log in.')
+      navigate('/login')
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create account')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #0B0C10 0%, #1F2833 100%)' }}>
       {/* Left Side - Luxury Car Image */}
       <motion.div 
         className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
@@ -56,10 +138,10 @@ export default function Signup() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              Join Us
+              Join Our Team
             </h1>
             <p className="text-xl text-[#C5C6C7] mb-8" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-              Experience premium automotive service
+              Manage automotive operations with precision
             </p>
             <div className="text-9xl">🚗</div>
           </motion.div>
@@ -102,48 +184,119 @@ export default function Signup() {
                 color: '#C5C6C7',
                 fontFamily: 'Poppins, sans-serif'
               }}>
-                Create Account
+                Create Staff Account
               </h1>
               <p className="text-[#C5C6C7] opacity-70" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                Join MotoTrack today
+                Join MotoTrack team
               </p>
             </div>
 
-            <form className="flex flex-col gap-5" onSubmit={submit}>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
-                  Email
+                  Full Name (Optional)
                 </label>
                 <input 
                   className="input-modern w-full" 
-                  placeholder="example@email.com" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
+                  placeholder="John Doe" 
+                  value={formData.full_name} 
+                  onChange={e => setFormData({...formData, full_name: e.target.value})} 
+                  type="text"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Phone (Optional)
+                </label>
+                <input 
+                  className="input-modern w-full" 
+                  placeholder="+1234567890" 
+                  value={formData.phone} 
+                  onChange={e => setFormData({...formData, phone: e.target.value})} 
+                  type="tel"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Email *
+                </label>
+                <input 
+                  className="input-modern w-full" 
+                  placeholder="staff@example.com" 
+                  value={formData.email} 
+                  onChange={e => setFormData({...formData, email: e.target.value})} 
                   type="email"
                   required
                 />
               </div>
+
               <div>
                 <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
-                  Password
+                  Password *
                 </label>
                 <input 
                   className="input-modern w-full" 
                   type="password" 
                   placeholder="••••••••" 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
+                  value={formData.password} 
+                  onChange={e => setFormData({...formData, password: e.target.value})} 
                   required
+                  minLength={6}
                 />
               </div>
-              <div className="text-center py-2">
-                <p className="text-xs text-[#C5C6C7] opacity-70" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Creating a <span className="text-[#66FCF1] font-semibold">Client</span> account
-                </p>
-                <p className="text-xs text-[#C5C6C7] opacity-50 mt-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                  Staff profiles can only be created by administrators
-                </p>
+
+              <div>
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Confirm Password *
+                </label>
+                <input 
+                  className="input-modern w-full" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={formData.confirmPassword} 
+                  onChange={e => setFormData({...formData, confirmPassword: e.target.value})} 
+                  required
+                  minLength={6}
+                />
               </div>
+
+              <div>
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Role *
+                </label>
+                <select
+                  className="input-modern w-full"
+                  value={formData.role}
+                  onChange={e => setFormData({...formData, role: e.target.value})}
+                  required
+                >
+                  <option value="technician">Technician</option>
+                  <option value="site_manager">Site Manager</option>
+                  <option value="workshop_manager">Workshop Manager</option>
+                  <option value="warehouse_manager">Warehouse Manager</option>
+                  <option value="billing">Billing Staff</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm mb-2 font-medium" style={{ color: '#C5C6C7', fontFamily: 'Poppins, sans-serif' }}>
+                  Garage *
+                </label>
+                <select
+                  className="input-modern w-full"
+                  value={formData.garage_id}
+                  onChange={e => setFormData({...formData, garage_id: e.target.value})}
+                  required
+                >
+                  <option value="">Select garage</option>
+                  {garages.map((g: any) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <button 
                 className="btn-primary w-full text-lg py-4 mt-2" 
                 type="submit"
