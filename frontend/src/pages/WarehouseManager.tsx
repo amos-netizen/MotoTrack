@@ -28,9 +28,9 @@ export default function WarehouseManager() {
         api.listPendingRequests(),
         api.listLowStockItems()
       ])
-      setItems(itemsData)
-      setApprovedRequests(requests.filter((r: any) => r.status === 'approved'))
-      setLowStockItems(lowStock)
+      setItems(itemsData as any)
+      setApprovedRequests((requests as any[]).filter((r: any) => r.status === 'approved'))
+      setLowStockItems(lowStock as any)
     } catch (err: any) {
       setMsg(err.message)
     }

@@ -31,7 +31,7 @@ export default function Orders() {
     setLoading(true)
     try {
       const data = await api.listOrders()
-      setOrders(data)
+      setOrders(data as any)
     } finally {
       setLoading(false)
     }
@@ -69,7 +69,6 @@ export default function Orders() {
     const s = rowState[id] || {}
     if (!s.reschedule_vin || !s.reschedule_datetime) return
     const all = await api.listAppointments()
-    const candidates = (all as any[]).filter(a => a.status === 'scheduled' && a.vehicle_id)
     // Without a vehicle lookup API, approximate by VIN matching across recent bookings we made
     // We stored VIN per booking; to keep it simple, reschedule the latest appointment overall
     let latest = (all as any[])

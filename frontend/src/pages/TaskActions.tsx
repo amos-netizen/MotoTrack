@@ -24,7 +24,7 @@ export default function TaskActions() {
         operations_stream: filterStream || undefined,
         active_only: false
       })
-      setTasks(data)
+      setTasks(data as any)
     } catch (err: any) {
       setMsg(err.message)
     }

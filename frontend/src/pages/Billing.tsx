@@ -18,8 +18,8 @@ export default function Billing() {
         api.listJobs({ status: 'billing' }),
         api.listInvoices()
       ])
-      setBillingJobs(jobs)
-      setInvoices(invoicesData)
+      setBillingJobs(jobs as any)
+      setInvoices(invoicesData as any)
     } catch (err: any) {
       setMsg(err.message)
     }

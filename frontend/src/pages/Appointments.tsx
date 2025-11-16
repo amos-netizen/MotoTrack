@@ -21,7 +21,7 @@ export default function Appointments() {
     setLoading(true)
     try {
       const data = await api.listAppointments()
-      setList(data)
+      setList(data as any)
     } finally {
       setLoading(false)
     }

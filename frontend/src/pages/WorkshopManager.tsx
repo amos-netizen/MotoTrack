@@ -4,7 +4,6 @@ import { api } from '../lib/api'
 export default function WorkshopManager() {
   const [pendingRequests, setPendingRequests] = useState<any[]>([])
   const [completedJobs, setCompletedJobs] = useState<any[]>([])
-  const [selectedJob, setSelectedJob] = useState<any>(null)
   const [msg, setMsg] = useState('')
 
   useEffect(() => {
@@ -17,8 +16,8 @@ export default function WorkshopManager() {
         api.listPendingRequests(),
         api.listJobs({ status: 'completed' })
       ])
-      setPendingRequests(requests.filter((r: any) => r.status === 'pending'))
-      setCompletedJobs(jobs)
+      setPendingRequests((requests as any[]).filter((r: any) => r.status === 'pending'))
+      setCompletedJobs(jobs as any)
     } catch (err: any) {
       setMsg(err.message)
     }

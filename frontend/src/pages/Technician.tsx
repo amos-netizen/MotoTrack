@@ -28,7 +28,7 @@ export default function Technician() {
   const loadJobs = async () => {
     try {
       const data = await api.listJobs({ status: 'assigned' })
-      setJobs(data)
+      setJobs(data as any)
     } catch (err: any) {
       setMsg(err.message)
     }
@@ -43,10 +43,10 @@ export default function Technician() {
         api.listJobRequests(selectedJob.id),
         api.listTaskActions({ operations_stream: selectedJob.operations_stream, active_only: true })
       ])
-      setSelectedJob(jobData)
-      setJobTasks(tasks)
-      setPartsRequests(requests)
-      setAvailableTasks(tasksList)
+      setSelectedJob(jobData as any)
+      setJobTasks(tasks as any)
+      setPartsRequests(requests as any)
+      setAvailableTasks(tasksList as any)
     } catch (err: any) {
       setMsg(err.message)
     }
