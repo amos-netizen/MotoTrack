@@ -92,7 +92,7 @@ class TaskActionCreate(BaseModel):
     operations_stream: OperationsStream
     name: str
     description: Optional[str] = ""
-    default_labor_cost: float = 0.0
+    default_labor_cost: float = 1.0
 
 
 class TaskActionOut(BaseModel):

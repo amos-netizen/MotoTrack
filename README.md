@@ -83,3 +83,18 @@ Pages:
 - `/orders` manage service orders
 - `/appointments` manage appointments
 - `/recommendation` next service recommendation
+
+## Deployment (Docker)
+
+Run in production mode with Docker:
+
+```bash
+docker compose up -d --build
+```
+
+Then open `http://localhost`.
+
+Notes:
+- Frontend proxies API requests from `/api/*` to backend service.
+- Backend persists SQLite DB in Docker volume `mototrack_data`.
+- Configure backend environment using `.env.example` values (`DATABASE_URL`, `CORS_ORIGINS`).

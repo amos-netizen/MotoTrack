@@ -140,7 +140,7 @@ class TaskAction(Base):
     operations_stream = Column(SQLEnum(OperationsStream), nullable=False)
     name = Column(String(128), nullable=False)
     description = Column(Text, default="")
-    default_labor_cost = Column(Float, default=0.0)
+    default_labor_cost = Column(Float, default=1.0)
     is_active = Column(Boolean, default=True)
 
     job_task_actions = relationship("JobTaskAction", back_populates="task_action")

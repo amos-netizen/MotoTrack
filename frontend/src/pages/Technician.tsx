@@ -250,7 +250,7 @@ export default function Technician() {
                     <div key={task.id} className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg">
                       <div>
                         <div className="font-semibold text-white">{task.task_action?.name}</div>
-                        <div className="text-sm text-gray-400">Cost: ${task.labor_cost || task.task_action?.default_labor_cost || 0}</div>
+                        <div className="text-sm text-gray-400">Cost: KES {(task.labor_cost || task.task_action?.default_labor_cost || 0).toFixed(2)}</div>
                       </div>
                       {!task.completed && (
                         <button onClick={() => handleCompleteTask(task.id)} className="btn-secondary text-sm">

@@ -11,7 +11,7 @@ export default function TaskActions() {
     operations_stream: 'body_works',
     name: '',
     description: '',
-    default_labor_cost: 0
+    default_labor_cost: 1
   })
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function TaskActions() {
         operations_stream: 'body_works',
         name: '',
         description: '',
-        default_labor_cost: 0
+        default_labor_cost: 1
       })
       loadTasks()
     } catch (err: any) {
@@ -122,13 +122,13 @@ export default function TaskActions() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Default Labor Cost</label>
+              <label className="block text-sm text-gray-400 mb-2">Default Labor Cost (KES)</label>
               <input
                 type="number"
                 step="0.01"
                 className="input-modern w-full"
                 value={formData.default_labor_cost}
-                onChange={e => setFormData({...formData, default_labor_cost: parseFloat(e.target.value) || 0})}
+                onChange={e => setFormData({...formData, default_labor_cost: parseFloat(e.target.value) || 1})}
               />
             </div>
             <div className="md:col-span-2">
@@ -173,7 +173,7 @@ export default function TaskActions() {
                 <p className="text-sm text-gray-400 mb-2">{task.description}</p>
               )}
               <div className="text-sm text-gray-300 mb-3">
-                Default Cost: ${task.default_labor_cost.toFixed(2)}
+                Default Cost: KES {task.default_labor_cost.toFixed(2)}
               </div>
               <button
                 onClick={() => handleToggleActive(task.id, task.is_active)}

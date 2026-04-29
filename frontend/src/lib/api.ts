@@ -1,5 +1,5 @@
 import { getToken } from './auth'
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? '/api' : 'http://localhost:8000');
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken()
