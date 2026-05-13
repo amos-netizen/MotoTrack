@@ -27,6 +27,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-jose==3.3.0
 python-multipart==0.0.20
+psycopg2-binary
 pytz==2025.2
 PyYAML==6.0.3
 rsa==4.9.1

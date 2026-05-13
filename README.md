@@ -98,3 +98,20 @@ Notes:
 - Frontend proxies API requests from `/api/*` to backend service.
 - Backend persists SQLite DB in Docker volume `mototrack_data`.
 - Configure backend environment using `.env.example` values (`DATABASE_URL`, `CORS_ORIGINS`).
+
+## Deployment (Render)
+
+This repo is ready for Render Blueprint deploy via `render.yaml`.
+
+1. Push your latest code to GitHub.
+2. In Render, choose **New +** -> **Blueprint**.
+3. Select this repository and branch.
+4. Render will create:
+   - `mototrack-api` (Python web service)
+   - `mototrack-web` (static frontend)
+   - `mototrack-db` (PostgreSQL database)
+
+Important:
+- Frontend gets `VITE_API_BASE` from backend service URL automatically.
+- Backend reads `DATABASE_URL` from Render Postgres.
+- `CORS_ORIGINS` is currently set to `*` in blueprint; tighten it later to your frontend URL for stricter security.

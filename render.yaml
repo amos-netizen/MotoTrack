@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: mototrack-api
+    runtime: python
+    plan: starter
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mototrack-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: "*"
+
+  - type: static
+    name: mototrack-web
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          name: mototrack-api
+          type: web
+          property: url
+
+databases:
+  - name: mototrack-db
+    plan: starter
